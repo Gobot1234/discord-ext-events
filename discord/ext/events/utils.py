@@ -77,7 +77,9 @@ def listens_for(*events: str) -> Callable:
             if event in events:
                 result = await func(client, *args, **kwargs)
                 if result is not SENTINEL:
-                    client.dispatch(event_name, result)
+                    if not isinstance(result, tuple):
+                        result = (result,)
+                    client.dispatch(event_name, *result)
 
         return wrapper
 
