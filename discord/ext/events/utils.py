@@ -76,7 +76,7 @@ def listens_for(*events: str) -> Callable:
         async def wrapper(client, event, *args, **kwargs):
             if event in events:
                 result = await func(client, *args, **kwargs)
-                if result is not SENTINEL:
+                if result is not None:
                     if not isinstance(result, tuple):
                         result = (result,)
                     client.dispatch(event_name, *result)
@@ -84,6 +84,3 @@ def listens_for(*events: str) -> Callable:
         return wrapper
 
     return decorator
-
-
-SENTINEL = object()
