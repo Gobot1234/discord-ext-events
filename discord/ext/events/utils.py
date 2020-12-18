@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from functools import wraps
-from typing import Callable, Optional
+from typing import Any, Callable, Optional, TypeVar
 
 import discord
 
@@ -9,10 +9,18 @@ from .custom_events import _ALL
 
 
 SLEEP_FOR = 2.5
+T = TypeVar("T")
+Event = Callable[[discord.Client, T, T], Any]
 
 
-async def fetch_recent_audit_log_entry(client: discord.Client, guild: discord.Guild, *, target: discord.User = None,
-                                       action: discord.AuditLogAction = None, retry: int = 0) -> Optional[discord.AuditLogEntry]:
+async def fetch_recent_audit_log_entry(
+    client: discord.Client,
+    guild: discord.Guild,
+    *,
+    target: Optional[discord.User] = None,
+    action: Optional[discord.AuditLogAction] = None,
+    retry: int = 0
+) -> Optional[discord.AuditLogEntry]:
     """|coro|
 
     Attempts to retrieve an recently created :class:`~discord.AuditLogEntry` which meets the specified requirements.
@@ -59,7 +67,7 @@ async def fetch_recent_audit_log_entry(client: discord.Client, guild: discord.Gu
     return None
 
 
-def listens_for(*events: str) -> Callable:
+def listens_for(*events: str) -> Callable[[Event], Event]:
     """Helper decorator which defines which events an event check is listening for.
 
     Parameters
@@ -68,12 +76,12 @@ def listens_for(*events: str) -> Callable:
         The names of the events to listen for.
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Event) -> Event:
         event_name = func.__name__[6:]
         _ALL[event_name] = func
 
         @wraps(func)
-        async def wrapper(client, event, *args, **kwargs):
+        async def wrapper(client: discord.Client, event: str, *args: Any, **kwargs: Any) -> None:
             if event in events:
                 result = await func(client, *args, **kwargs)
                 if result is not None:

@@ -8,18 +8,18 @@ from .errors import InvalidEvent
 
 
 class CustomEventDispatcher:
-    def __init__(self, listening_to: Optional[List[str]]=None):
+    def __init__(self, listening_to: Optional[List[str]] = None):
         valid_handlers = _ALL
 
         if listening_to:
             try:
                 valid_handlers = {name: _ALL[name] for name in listening_to}
             except KeyError as e:
-                raise InvalidEvent('no registered handler for {!r}'.format(e.args[0]))
-        
+                raise InvalidEvent("no registered handler for {!r}".format(e.args[0]))
+
         self.valid_handlers = valid_handlers
 
-    def handle(self, client: discord.Client, event: str, *args, **kwargs):
+    def handle(self, client: discord.Client, event: str, *args, **kwargs) -> None:
         if event in self.valid_handlers:
             return
 
